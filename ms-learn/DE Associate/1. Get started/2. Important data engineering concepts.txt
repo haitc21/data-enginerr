@@ -1,0 +1,19 @@
+1. Operational and analytical data
+- Operational data is usually transactional data that is generated and stored by applications, often in a relational or non-relational database. Analytical data is data that has been optimized for analysis and reporting, often in a data warehouse.
+- One of the core responsibilities of a data engineer is to design, implement, and manage solutions that integrate operational and analytical data sources or extract operational data from multiple systems, transform it into appropriate structures for analytics, and load it into an analytical data store (usually referred to as ETL solutions).
+2. Streaming data
+- Data engineers often need to implement solutions that capture real-time stream of data and ingest them into analytical data systems, often combining the real-time data with other application data that is processed in batches.
+3. Data pipelines
+- Data pipelines are used to orchestrate activities that transfer and transform data. Pipelines are the primary way in which data engineers implement repeatable extract, transform, and load (ETL) solutions that can be triggered based on a schedule or in response to events.
+4. Data lakes
+- A data lake is a storage repository that holds large amounts of data in native, raw formats.
+- The idea with a data lake is to store everything in its original, untransformed state. This approach differs from a traditional data warehouse, which transforms and processes the data at the time of ingestion.
+5. Data warehouses
+- A data warehouse is a centralized repository of integrated data from one or more disparate sources.
+- Data warehouses store current and historical data in relational tables that are organized into a schema that optimizes performance for analytical queries.
+6. Apache Spark
+- Apache Spark is a parallel processing framework that takes advantage of in-memory processing and a distributed file storage. It's a common open-source software (OSS) tool for big data scenarios.
+
+
+
+
