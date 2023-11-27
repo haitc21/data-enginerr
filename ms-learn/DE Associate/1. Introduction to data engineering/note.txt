@@ -1,0 +1,8 @@
+1. Types of data:
+- Structured: Sql table, Csv, Excel
+- Semi-structured: JSON
+- Unstructured: script, pdf, doc, images
+2. Data operations:
+- Data integration: Data Integration involves establishing links between operational and analytical services and data sources to enable secure, reliable access to data across multiple systems
+- Data tranformation: Operational data usually needs to be transformed into suitable structure and format for analysis, often as part of an extract, transform, and load (ETL) proces.
+- Data cosolidation: Data consolidation is the process of combining data that has been extracted from multiple data sources into a consistent structure - usually to support analytics and reporting.
