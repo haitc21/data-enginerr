@@ -1,0 +1,5 @@
+Four common types of analytical techn1ique:
+1. Descriptive analytics: “What is happening?”
+2. Diagnostic analytics: “Why is it happening?”
+3. Predictive analytics: “What is likely to happen in the future based on previous trends and patterns?”
+4. Prescriptive analytics: which enables autonomous decision making based on real-time or near real-time analysis of data, using predictive analytics.

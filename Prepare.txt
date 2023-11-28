@@ -1,0 +1,5 @@
+Python
+SQL
+Datalake, Data Warehouse, Data Mart và Data Pipeline
+Hadoop: Map Reduce, HDFS
+Spark: Spark Dataframe, Spark RDD, Spark Job 
