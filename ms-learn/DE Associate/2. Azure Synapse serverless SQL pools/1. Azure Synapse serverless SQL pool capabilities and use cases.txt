@@ -1,0 +1,7 @@
+1. Azure Synapse Analytics that offers two kinds of runtime environments::
+- Serverless SQL pool: on-demand SQL query processing, primarily used to work with data in a data lake.
+- Dedicated SQL pool: Enterprise-scale relational database instances used to host data warehouses in which data is stored in relational tables.
+2. When to use serverless SQL pools
+- Data exploration: Data exploration involves browsing the data lake to get initial insights about the data, and is easily achievable with Azure Synapse Studio
+- Data transformation: Synapse Spark, SQL. Serverless
+- Logical data warehouse.

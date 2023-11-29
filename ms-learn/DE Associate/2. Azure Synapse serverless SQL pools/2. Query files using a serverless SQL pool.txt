@@ -1,0 +1,51 @@
+1. You can use a serverless SQL pool to query data files in various common file formats, including:
+- Delimited text, such as comma-separated values (CSV) files.
+- JavaScript object notation (JSON) files.
+- Parquet files: Apache Parquet is an open source, column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Apache Parquet is designed to be a common interchange format for both batch and interactive workloads. It is similar to other columnar-storage file formats available in Hadoop, namely RCFile and ORC.
+The basic syntax for querying is the same for all of these types of file, and is built on the OPENROWSET SQL function.
+2. Querying delimited text files (CSV)
+SELECT TOP 100 *
+FROM OPENROWSET(
+    BULK 'https://mydatalake.blob.core.windows.net/data/files/*.csv',
+    FORMAT = 'csv',
+    PARSER_VERSION = '2.0')
+WITH (
+    product_id INT,
+    product_name VARCHAR(20) COLLATE Latin1_General_100_BIN2_UTF8,
+    list_price DECIMAL(5,2)
+) AS rows
+3. Querying JSON files
+- Return JSOn doc string:
+ SELECT doc
+FROM
+    OPENROWSET(
+        BULK 'https://mydatalake.blob.core.windows.net/data/files/*.json',
+        FORMAT = 'csv',
+        FIELDTERMINATOR ='0x0b',
+        FIELDQUOTE = '0x0b',
+        ROWTERMINATOR = '0x0b'
+    ) WITH (doc NVARCHAR(MAX)) as rows
+- Return table 
+SELECT JSON_VALUE(doc, '$.product_name') AS product,
+           JSON_VALUE(doc, '$.list_price') AS price
+FROM
+    OPENROWSET(
+        BULK 'https://mydatalake.blob.core.windows.net/data/files/*.json',
+        FORMAT = 'csv',
+        FIELDTERMINATOR ='0x0b',
+        FIELDQUOTE = '0x0b',
+        ROWTERMINATOR = '0x0b'
+    ) WITH (doc NVARCHAR(MAX)) as rows
+4. Querying Parquet files
+SELECT TOP 100 *
+FROM OPENROWSET(
+    BULK 'https://mydatalake.blob.core.windows.net/data/files/*.*',
+    FORMAT = 'parquet') AS rows
+5. Query partitioned data
+SELECT *
+FROM OPENROWSET(
+    BULK 'https://mydatalake.blob.core.windows.net/data/orders/year=*/month=*/*.*',
+    FORMAT = 'parquet') AS orders
+WHERE orders.filepath(1) = '2020'
+    AND orders.filepath(2) IN ('1','2');
+- The numbered filepath parameters in the WHERE clause reference the wildcards in the folder names in the BULK path -so the parameter 1 is the * in the year=* folder name, and parameter 2 is the * in the month=* folder name.
