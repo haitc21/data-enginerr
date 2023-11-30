@@ -1,0 +1,50 @@
+1. database
+- Create Db
+CREATE DATABASE SalesDB
+    COLLATE Latin1_General_100_BIN2_UTF8
+- External data source
+CREATE EXTERNAL DATA SOURCE files
+WITH (
+    LOCATION = 'https://mydatalake.blob.core.windows.net/data/files/'
+)
+- Identity with credential example with SAS in Aruze Storage
+
+CREATE DATABASE SCOPED CREDENTIAL sqlcred
+WITH
+    IDENTITY='SHARED ACCESS SIGNATURE',  
+    SECRET = 'sv=xxx...';
+GO
+
+CREATE EXTERNAL DATA SOURCE secureFiles
+WITH (
+    LOCATION = 'https://mydatalake.blob.core.windows.net/data/secureFiles/'
+    CREDENTIAL = sqlcred
+);
+GO
+2. file format
+CREATE EXTERNAL FILE FORMAT CsvFormat
+    WITH (
+        FORMAT_TYPE = DELIMITEDTEXT,
+        FORMAT_OPTIONS(
+            FIELD_TERMINATOR = ',',
+            STRING_DELIMITER = '"'
+        )
+    );
+GO
+3. table
+CREATE EXTERNAL TABLE dbo.products
+(
+    product_id INT,
+    product_name VARCHAR(20),
+    list_price DECIMAL(5,2)
+)
+WITH
+(
+    DATA_SOURCE = files,
+    LOCATION = 'products/*.csv',
+    FILE_FORMAT = CsvFormat
+);
+GO
+
+-- query the table
+SELECT * FROM dbo.products;
