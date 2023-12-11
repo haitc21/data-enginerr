@@ -1,0 +1,47 @@
+1. Loading data into a dataframe
+%%pyspark
+df = spark.read.load('abfss://container@store.dfs.core.windows.net/products.csv',
+    format='csv',
+    header=True
+)
+display(df.limit(10))
+2. Specifying a dataframe schema
+
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+productSchema = StructType([
+    StructField("ProductID", IntegerType()),
+    StructField("ProductName", StringType()),
+    StructField("Category", StringType()),
+    StructField("ListPrice", FloatType())
+    ])
+
+df = spark.read.load('abfss://container@store.dfs.core.windows.net/product-data.csv',
+    format='csv',
+    schema=productSchema,
+    header=False)
+display(df.limit(10))
+3. Filtering and grouping dataframes
+
+
+bikes_df = df.select("ProductName", "ListPrice").where((df["Category"]=="Mountain Bikes") | (df["Category"]=="Road Bikes"))
+display(bikes_df)
+// Group
+counts_df = df.select("ProductID", "Category").groupBy("Category").count()
+display(counts_df)
+4. Using SQL expressions in Spark
+4.1 Creating database objects in the Spark catalog
+df.createOrReplaceTempView("products")
+4.2 Using the Spark SQL API to query data
+bikes_df = spark.sql("SELECT ProductID, ProductName, ListPrice \
+                      FROM products \
+                      WHERE Category IN ('Mountain Bikes', 'Road Bikes')")
+display(bikes_df)
+4.3 Using SQL code
+%%sql
+
+SELECT Category, COUNT(ProductID) AS ProductCount
+FROM products
+GROUP BY Category
+ORDER BY Category
