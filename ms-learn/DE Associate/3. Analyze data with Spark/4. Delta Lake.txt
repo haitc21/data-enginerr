@@ -1,0 +1,91 @@
+Delta Lake is an open-source storage layer that adds relational database semantics to Spark-based data lake processing.
+- Relational tables that support querying and data modification.
+- Support for ACID transactions
+- Data versioning and time travel.
+- Support for batch and streaming data
+- Standard formats and interoperability (Parquet).
+1. Creating a Delta Lake table from a dataframe
+
+# Load a file into a dataframe
+df = spark.read.load('/data/mydata.csv', format='csv', header=True)
+
+# Save the dataframe as a delta table
+delta_table_path = "/delta/mydata"
+df.write.format("delta").save(delta_table_path)
+
+# Replcae existed delta table
+new_df.write.format("delta").mode("overwrite").save(delta_table_path)
+
+# Append data in existed delta table
+new_rows_df.write.format("delta").mode("append").save(delta_table_path)
+
+3. Update data
+
+from delta.tables import *
+from pyspark.sql.functions import *
+
+# Create a deltaTable object
+deltaTable = DeltaTable.forPath(spark, delta_table_path)
+
+# Update the table (reduce price of accessories by 10%)
+deltaTable.update(
+    condition = "Category == 'Accessories'",
+    set = { "Price": "Price * 0.9" })
+4. Query previous version data
+
+# by version
+df = spark.read.format("delta").option("versionAsOf", 0).load(delta_table_path)
+# by tumestamp
+df = spark.read.format("delta").option("timestampAsOf", '2022-01-01').load(delta_table_path)
+
+5.* External vs managed tables 
+- A managed table is defined without a specified location, and the data files are stored within the storage used by the metastore. Dropping the table not only removes its metadata from the catalog, but also deletes the folder in which its data files are stored.
+- An external table is defined for a custom file location, where the data for the table is stored. The metadata for the table is defined in the Spark catalog. Dropping the table deletes the metadata from the catalog, but doesn't affect the data files.
+6. Creating a catalog table from a dataframe
+# Save a dataframe as a managed table
+df.write.format("delta").saveAsTable("MyManagedTable")
+
+## specify a path option to save as an external table
+df.write.format("delta").option("path", "/mydata").saveAsTable("MyExternalTable")
+
+7. Creating a catalog table using SQL
+# pyspark
+spark.sql("CREATE TABLE MyExternalTable USING DELTA LOCATION '/mydata'")
+#sql
+%%sql
+
+CREATE TABLE MyExternalTable
+USING DELTA
+LOCATION '/mydata'
+8. Defining the table schema
+%%sql
+
+CREATE TABLE ManagedSalesOrders
+(
+    Orderid INT NOT NULL,
+    OrderDate TIMESTAMP NOT NULL,
+    CustomerName STRING,
+    SalesTotal FLOAT NOT NULL
+)
+USING DELTA
+
+- Using the DeltaTableBuilder API
+
+from delta.tables import *
+
+DeltaTable.create(spark) \
+  .tableName("default.ManagedProducts") \
+  .addColumn("Productid", "INT") \
+  .addColumn("ProductName", "STRING") \
+  .addColumn("Category", "STRING") \
+  .addColumn("Price", "FLOAT") \
+  .execute()
+# Similarly to the CREATE TABLE SQL statement, the create method returns an error if a table with the specified name already exists. You can mitigate this behavior by using the createIfNotExists or createOrReplace method.
+
+9. Using catalog tables
+You can use catalog tables like tables in any SQL-based relational database
+
+%%sql
+
+SELECT orderid, salestotal
+FROM ManagedSalesOrders
