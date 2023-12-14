@@ -37,6 +37,8 @@ deltaTable.update(
 df = spark.read.format("delta").option("versionAsOf", 0).load(delta_table_path)
 # by tumestamp
 df = spark.read.format("delta").option("timestampAsOf", '2022-01-01').load(delta_table_path)
+# show history
+ deltaTable.history(10).show(20, False, True)
 
 5.* External vs managed tables 
 - A managed table is defined without a specified location, and the data files are stored within the storage used by the metastore. Dropping the table not only removes its metadata from the catalog, but also deletes the folder in which its data files are stored.

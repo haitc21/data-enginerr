@@ -1,0 +1,39 @@
+1. Querying delta formatted files with OPENROWSET
+
+SELECT *
+FROM
+    OPENROWSET(
+        BULK 'https://mystore.dfs.core.windows.net/files/delta/mytable/',
+        FORMAT = 'DELTA'
+    ) AS deltadata
+
+# create a database and add a data source
+
+CREATE DATABASE MyDB
+      COLLATE Latin1_General_100_BIN2_UTF8;
+GO;
+
+USE MyDB;
+GO
+
+CREATE EXTERNAL DATA SOURCE DeltaLakeStore
+WITH
+(
+    LOCATION = 'https://mystore.dfs.core.windows.net/files/delta/'
+);
+GO
+
+SELECT TOP 10 *
+FROM OPENROWSET(
+        BULK 'mytable',
+        DATA_SOURCE = 'DeltaLakeStore',
+        FORMAT = 'DELTA'
+    ) as deltadata;
+
+2. Querying catalog tables
+
+-- By default, Spark catalog tables are created in a database named "default"
+-- If you created another database using Spark SQL, you can use it here
+USE default;
+
+SELECT * FROM MyDeltaTable;

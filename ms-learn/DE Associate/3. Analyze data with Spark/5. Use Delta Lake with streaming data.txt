@@ -1,0 +1,50 @@
+You can use a Delta Lake table as a source or a sink for Spark Structured Streaming.
+1. Using a Delta Lake table as a streaming source
+
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+# Load a streaming dataframe from the Delta Table
+stream_df = spark.readStream.format("delta") \
+    .option("ignoreChanges", "true") \
+    .load("/delta/internetorders")
+
+# Now you can process the streaming data in the dataframe
+# for example, show it:
+stream_df.writeStream \
+    .outputMode("append") \
+    .format("console") \
+    .start()
+
+2. Using a Delta Lake table as a streaming sink
+
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+# Create a stream that reads JSON data from a folder
+inputPath = '/streamingdata/'
+jsonSchema = StructType([
+    StructField("device", StringType(), False),
+    StructField("status", StringType(), False)
+])
+stream_df = spark.readStream.schema(jsonSchema).option("maxFilesPerTrigger", 1).json(inputPath)
+
+# Write the stream to a delta table
+table_path = '/delta/devicetable'
+checkpoint_path = '/delta/checkpoint'
+delta_stream = stream_df.writeStream.format("delta").option("checkpointLocation", checkpoint_path).start(table_path)
+
+# Use SQL to read data from stream
+%%sql
+
+CREATE TABLE DeviceTable
+USING DELTA
+LOCATION '/delta/devicetable';
+
+SELECT device, status
+FROM DeviceTable;
+
+# Stop stream
+
+delta_stream.stop()
+
