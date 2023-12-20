@@ -1,0 +1,9 @@
+A common pattern for relational data warehouses is to define a schema that includes two kinds of table: dimension tables and fact tables.
+1. Dimension tables
+Dimension tables describe business entities, such as products, people, places, and dates.
+ dimension table to include two key columns:
+- a surrogate key that is specific to the data warehouse and uniquely identifies each row in the dimension table in the data warehouse - usually an incrementing integer number.
+- An alternate key, often a natural or business key that is used to identify a specific instance of an entity in the transactional source system from which the entity record originated - such as a product code or a customer ID.
+2. Fact tables
+Fact tables store details of observations or events, ; for example, sales orders, stock balances, exchange rates, or recorded temperatures.A fact table contains columns for numeric values that can be aggregated by dimensions. In addition to the numeric columns, a fact table contains key columns that reference unique keys in related dimension tables.
+
