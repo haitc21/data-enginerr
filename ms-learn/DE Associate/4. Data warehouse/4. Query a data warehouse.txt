@@ -1,0 +1,49 @@
+For example, the following SQL queries the FactSales and DimDate tables in a hypothetical data warehouse to aggregate sales amounts by year and quarter:
+
+SELECT  dates.CalendarYear,
+        dates.CalendarQuarter,
+        SUM(sales.SalesAmount) AS TotalSales
+FROM dbo.FactSales AS sales
+JOIN dbo.DimDate AS dates ON sales.OrderDateKey = dates.DateKey
+GROUP BY dates.CalendarYear, dates.CalendarQuarter
+ORDER BY dates.CalendarYear, dates.CalendarQuarter;
+
+1. Using ranking functions
+
+- ROW_NUMBER returns the ordinal position of the row within the partition. For example, the first row is numbered 1, the second 2, and so on.
+- RANK returns the ranked position of each row in the ordered results. For example, in a partition of stores ordered by sales volume, the store with the highest sales volume is ranked 1. If multiple stores have the same sales volumes, they'll be ranked the same, and the rank assigned to subsequent stores reflects the number of stores that have higher sales volumes - including ties.
+- DENSE_RANK ranks rows in a partition the same way as RANK, but when multiple rows have the same rank, subsequent rows are ranking positions ignore ties.
+- NTILE returns the specified percentile in which the row falls. For example, in a partition of stores ordered by sales volume, NTILE(4) returns the quartile in which a store's sales volume places it.
+
+SELECT  ProductCategory,
+        ProductName,
+        ListPrice,
+        ROW_NUMBER() OVER
+            (PARTITION BY ProductCategory ORDER BY ListPrice DESC) AS RowNumber,
+        RANK() OVER
+            (PARTITION BY ProductCategory ORDER BY ListPrice DESC) AS Rank,
+        DENSE_RANK() OVER
+            (PARTITION BY ProductCategory ORDER BY ListPrice DESC) AS DenseRank,
+        NTILE(4) OVER
+            (PARTITION BY ProductCategory ORDER BY ListPrice DESC) AS Quartile
+FROM dbo.DimProduct
+ORDER BY ProductCategory;
+
+2. Retrieving an approximate count
+
+SELECT dates.CalendarYear AS CalendarYear,
+    COUNT(DISTINCT sales.OrderNumber) AS Orders
+FROM FactSales AS sales
+JOIN DimDate AS dates ON sales.OrderDateKey = dates.DateKey
+GROUP BY dates.CalendarYear
+ORDER BY CalendarYear;
+
+# The APPROX_COUNT_DISTINCT function uses a HyperLogLog algorithm to retrieve an approximate count. The result is guaranteed to have a maximum error rate of 2% with 97% probability,
+
+SELECT dates.CalendarYear AS CalendarYear,
+    APPROX_COUNT_DISTINCT(sales.OrderNumber) AS ApproxOrders
+FROM FactSales AS sales
+JOIN DimDate AS dates ON sales.OrderDateKey = dates.DateKey
+GROUP BY dates.CalendarYear
+ORDER BY CalendarYear;
+

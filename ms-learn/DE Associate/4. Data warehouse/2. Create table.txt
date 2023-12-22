@@ -1,0 +1,119 @@
+To create a relational data warehouse in Azure Synapse Analytics, you must create a dedicated SQL Pool
+Data warehouse have three type of table: 
+- Fact tables
+- Dimension tables
+- Staging tables
+* Dedicated SQL pools in Synapse Analytics don't support foreign key and unique constraints
+* While Synapse Analytics dedicated SQL pools support clustered indexes as found in SQL Server,
+* Synapse Analytics supports the following kinds of distribution:
+- Hash: A deterministic hash value is calculated for the specified column and used to assign the row to a compute node.
+- Round-robin: Rows are distributed evenly across all compute nodes.
+- Replicated: A copy of the table is stored on each compute node.
+1. Creating dimension tables
+
+CREATE TABLE dbo.DimGeography
+(
+    GeographyKey INT IDENTITY NOT NULL,
+    GeographyAlternateKey NVARCHAR(10) NULL,
+    StreetAddress NVARCHAR(100),
+    City NVARCHAR(20),
+    PostalCode NVARCHAR(10),
+    CountryRegion NVARCHAR(20)
+)
+WITH
+(
+    DISTRIBUTION = REPLICATE,
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+CREATE TABLE dbo.DimCustomer
+(
+    CustomerKey INT IDENTITY NOT NULL,
+    CustomerAlternateKey NVARCHAR(15) NULL,
+    GeographyKey INT NULL,
+    CustomerName NVARCHAR(80) NOT NULL,
+    EmailAddress NVARCHAR(50) NULL,
+    Phone NVARCHAR(25) NULL
+)
+WITH
+(
+    DISTRIBUTION = REPLICATE,
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+2. Creating fact tables
+
+CREATE TABLE dbo.FactSales
+(
+    OrderDateKey INT NOT NULL,
+    CustomerKey INT NOT NULL,
+    ProductKey INT NOT NULL,
+    StoreKey INT NOT NULL,
+    OrderNumber NVARCHAR(10) NOT NULL,
+    OrderLineItem INT NOT NULL,
+    OrderQuantity SMALLINT NOT NULL,
+    UnitPrice DECIMAL NOT NULL,
+    Discount DECIMAL NOT NULL,
+    Tax DECIMAL NOT NULL,
+    SalesAmount DECIMAL NOT NULL
+)
+WITH
+(
+    DISTRIBUTION = HASH(OrderNumber),
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+3. Creating staging tables
+
+CREATE TABLE dbo.StageProduct
+(
+    ProductID NVARCHAR(10) NOT NULL,
+    ProductName NVARCHAR(200) NOT NULL,
+    ProductCategory NVARCHAR(200) NOT NULL,
+    Color NVARCHAR(10),
+    Size NVARCHAR(10),
+    ListPrice DECIMAL NOT NULL,
+    Discontinued BIT NOT NULL
+)
+WITH
+(
+    DISTRIBUTION = ROUND_ROBIN,
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+4. Using external tables
+
+-- External data source links to data lake location
+CREATE EXTERNAL DATA SOURCE StagedFiles
+WITH (
+    LOCATION = 'https://mydatalake.blob.core.windows.net/data/stagedfiles/'
+);
+GO
+
+-- External format specifies file format
+CREATE EXTERNAL FILE FORMAT ParquetFormat
+WITH (
+    FORMAT_TYPE = PARQUET,
+    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
+);
+GO
+
+-- External table references files in external data source
+CREATE EXTERNAL TABLE dbo.ExternalStageProduct
+(
+    ProductID NVARCHAR(10) NOT NULL,
+    ProductName NVARCHAR(200) NOT NULL,
+    ProductCategory NVARCHAR(200) NOT NULL,
+    Color NVARCHAR(10),
+    Size NVARCHAR(10),
+    ListPrice DECIMAL NOT NULL,
+    Discontinued BIT NOT NULL
+)
+WITH
+(
+    DATA_SOURCE = StagedFiles,
+    LOCATION = 'products/*.parquet',
+    FILE_FORMAT = ParquetFormat
+);
+GO
+
