@@ -1,0 +1,45 @@
+1. Creating staging tables
+
+CREATE TABLE dbo.StageProduct
+(
+    ProductID NVARCHAR(10) NOT NULL,
+    ProductName NVARCHAR(200) NOT NULL,
+    ProductCategory NVARCHAR(200) NOT NULL,
+    Color NVARCHAR(10),
+    Size NVARCHAR(10),
+    ListPrice DECIMAL NOT NULL,
+    Discontinued BIT NOT NULL
+)
+WITH
+(
+    DISTRIBUTION = ROUND_ROBIN,
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+2. Using the COPY command
+
+COPY INTO dbo.StageProduct
+    (ProductID, ProductName, ...)
+FROM 'https://mydatalake.../data/products*.parquet'
+WITH
+(
+    FILE_TYPE = 'PARQUET',
+    MAXERRORS = 0,
+    IDENTITY_INSERT = 'OFF'
+);
+
+3. Using external tables
+
+CREATE EXTERNAL TABLE dbo.ExternalStageProduct
+ (
+     ProductID NVARCHAR(10) NOT NULL,
+     ProductName NVARCHAR(10) NOT NULL,
+ ...
+ )
+WITH
+ (
+    DATE_SOURCE = StagedFiles,
+    LOCATION = 'folder_name/*.parquet',
+    FILE_FORMAT = ParquetFormat
+ );
+GO
